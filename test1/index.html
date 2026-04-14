@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTC/USD Professional AI Engine v3.0</title>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- ===== CHART.JS LIBRARIES (REQUIRED IN ORDER) ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+
+<!-- ========================================================
+     SECTION 1: HEADER / TICKER BAR (Full Width)
+     ======================================================== -->
+<header class="header">
+  <div class="header-left">
+    <h1>₿ Professional AI Terminal v3.0</h1>
+  </div>
+  
+  <div class="header-ticker">
+    <div id="live-clock" class="clock">00:00:00</div>
+    <span class="ticker-label">BTC</span>
+    <span id="price" class="ticker-value">$0</span>
+    <span id="change24hSpan" class="ticker-change">+0.00%</span>
+    <span class="ticker-label">H:</span>
+    <span id="high24h" class="ticker-value">$0</span>
+    <span class="ticker-label">L:</span>
+    <span id="low24h" class="ticker-value">$0</span>
+    <span class="ticker-label">F&G:</span>
+    <span id="fearGreed" class="ticker-value">–</span>
+    <span class="ticker-label">Cap:</span>
+    <span id="marketCap" class="ticker-value">$0</span>
+    <span class="ticker-label">Vol:</span>
+    <span id="volume24h" class="ticker-value">$0</span>
+  </div>
+  
+  <div class="header-status">
+    <span id="statusDot" class="status-dot online"></span>
+    <span id="statusTxt">Initializing...</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="main-grid">
+    
+    <!-- ===== LEFT COLUMN: CHART + REASONING + CONSOLE ===== -->
+    <div class="left-column">
+      
+      <!-- SECTION 2: CANDLESTICK CHART -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <h3>BTC/USD Chart</h3>
+          <div class="tf-buttons">
+            <button class="tf-btn" data-tf="1h">1H</button>
+            <button class="tf-btn active" data-tf="4h">4H</button>
+            <button class="tf-btn" data-tf="1d">1D</button>
+            <button class="tf-btn" data-tf="7d">7D</button>
+          </div>
+        </div>
+        <div id="chartWrap" class="chart-wrap">
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- SECTION 6: AI REASONING (Below Chart) -->
+      <div class="reasoning-section">
+        <div class="reasoning-header" onclick="toggleReasoning()">
+          <h3>AI Analysis Reasoning</h3>
+          <span class="reasoning-toggle">⊕</span>
+        </div>
+        <div id="reasoningPanel" class="reasoning-panel">
+          <div class="reason-row">
+            <span class="reason-dot bullish"></span>
+            <span class="reason-label">TREND:</span>
+            <span id="rTrend" class="reason-text">Analyzing trend alignment...</span>
+          </div>
+          <div class="reason-row">
+            <span class="reason-dot bullish"></span>
+            <span class="reason-label">MOMENTUM:</span>
+            <span id="rMomentum" class="reason-text">Checking RSI levels...</span>
+          </div>
+          <div class="reason-row">
+            <span class="reason-dot neutral"></span>
+            <span class="reason-label">VOLUME:</span>
+            <span id="rVolume" class="reason-text">Assessing volume profile...</span>
+          </div>
+          <div class="reason-row">
+            <span class="reason-dot neutral"></span>
+            <span class="reason-label">MACRO:</span>
+            <span id="rMacro" class="reason-text">Processing macro signals...</span>
+          </div>
+          <div class="reason-row">
+            <span class="reason-dot bearish"></span>
+            <span class="reason-label">STRUCTURE:</span>
+            <span id="rStructure" class="reason-text">Examining swing structure...</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SECTION 7: AI ANALYSIS CONSOLE -->
+      <div class="console-section">
+        <div class="console-header">
+          <h3>Console Output</h3>
+          <button onclick="clearConsole()" class="console-clear">Clear</button>
+        </div>
+        <div id="console-output" class="console-output">
+          <div class="console-entry info">Initializing dashboard...</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- ===== RIGHT COLUMN: AI PANELS (Stacked) ===== -->
+    <div class="right-column">
+      
+      <!-- SECTION 3: AI PREDICTION PANEL -->
+      <div class="panel prediction-panel">
+        <h3>AI Signal</h3>
+        <div class="signal-container">
+          <span id="signalBadge" class="signal-badge hold">HOLD</span>
+          <span id="strengthBadge" class="strength-badge weak">WEAK</span>
+        </div>
+        <div class="confidence-section">
+          <div class="confidence-label">Confidence</div>
+          <svg id="confGauge" class="confidence-gauge" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" class="gauge-bg"></circle>
+            <circle cx="60" cy="60" r="50" class="gauge-track"></circle>
+            <circle id="gaugeArc" cx="60" cy="60" r="50" class="gauge-arc"></circle>
+          </svg>
+          <span id="confPct" class="confidence-text">0%</span>
+        </div>
+        <div class="prediction-text">
+          <span id="predTxt" style="font-size: 16px; font-weight: bold;">Waiting for data...</span>
+        </div>
+        <div class="timeframe-tag">
+          Next 4H Close: <span id="countdown" style="color: #ffd740; font-weight: bold;">4h 00m 00s</span>
+        </div>
+      </div>
+      
+      <!-- SECTION 4: TRADE ZONES PANEL -->
+      <div class="panel zones-panel">
+        <h3>Trade Zones & Entry</h3>
+        <div class="zone-card buy-zone">
+          <div class="zone-label">BUY ZONE</div>
+          <div class="zone-prices">
+            <span id="buyBottom" class="zone-price">$0</span> — <span id="buyTop" class="zone-price">$0</span>
+          </div>
+        </div>
+        <div class="zone-card sell-zone">
+          <div class="zone-label">SELL TARGET</div>
+          <div class="zone-prices">
+            <span id="sellLow" class="zone-price">$0</span> — <span id="sellHigh" class="zone-price">$0</span>
+          </div>
+        </div>
+        <div class="zone-card stop-zone">
+          <div class="zone-label">STOP LOSS</div>
+          <div class="zone-prices">
+            <span id="stopLoss" class="zone-price">$0</span>
+          </div>
+        </div>
+        <div class="rr-box">
+          <span class="label">Risk:Reward</span>
+          <span id="rrRatio" class="rr-value">1:0</span>
+        </div>
+        <div class="entry-type">
+          <span class="label">Entry Type:</span>
+          <span id="entryType" class="badge">WAIT</span>
+        </div>
+        <div class="action-guide">
+          <ol style="margin: 8px 0; padding-left: 18px; font-size: 12px; color: #c9d1d9;">
+            <li>Wait for pullback to buy zone</li>
+            <li>RSI between 40-60 for entry confirmation</li>
+            <li>Place limit order at zone bottom</li>
+            <li>Set stop loss 0.8 ATR below entry</li>
+            <li>Take profit at 2:1 risk/reward minimum</li>
+            <li>Scale out at +1.5 R and +2.2 R targets</li>
+          </ol>
+        </div>
+      </div>
+      
+      <!-- SECTION 5: MULTI-PREDICTION CARDS (2x2 Grid) -->
+      <div class="panel multi-prediction">
+        <h3>Price Predictions (Next 4H)</h3>
+        <div class="prediction-grid">
+          
+          <div class="pred-card primary">
+            <div class="pred-title">Primary Signal</div>
+            <div class="pred-level"><span id="predPrimaryTitle">BULLISH</span> @ <span id="predPrimaryLevel">$0</span></div>
+            <div class="pred-bar-wrap">
+              <div id="predPrimaryBar" class="pred-bar primary-bar"></div>
+            </div>
+            <div class="pred-conf">Confidence: <span id="predPrimaryConf">0%</span></div>
+          </div>
+          
+          <div class="pred-card secondary">
+            <div class="pred-title">Secondary</div>
+            <div class="pred-level"><span id="predSecondaryTitle">BREAKOUT</span> @ <span id="predSecondaryLevel">$0</span></div>
+            <div class="pred-bar-wrap">
+              <div id="predSecondaryBar" class="pred-bar secondary-bar"></div>
+            </div>
+            <div class="pred-conf">Confidence: <span id="predSecondaryConf">0%</span></div>
+          </div>
+          
+          <div class="pred-card worst">
+            <div class="pred-title">Worst Case</div>
+            <div class="pred-level"><span id="predWorstTitle">DOWNSIDE</span> @ <span id="predWorstLevel">$0</span></div>
+            <div class="pred-bar-wrap">
+              <div id="predWorstBar" class="pred-bar worst-bar"></div>
+            </div>
+            <div class="pred-conf">Probability: <span id="predWorstProb">0%</span></div>
+          </div>
+          
+          <div class="pred-card best">
+            <div class="pred-title">Best Case</div>
+            <div class="pred-level"><span id="predBestTitle">UPSIDE</span> @ <span id="predBestLevel">$0</span></div>
+            <div class="pred-bar-wrap">
+              <div id="predBestBar" class="pred-bar best-bar"></div>
+            </div>
+            <div class="pred-conf">Probability: <span id="predBestProb">0%</span></div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+    
+  </div>
+</div>
+
+<!-- Load application logic -->
+<script src="config.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
